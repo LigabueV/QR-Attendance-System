@@ -1,0 +1,88 @@
+import database
+
+import sqlite3
+from datetime import datetime
+
+def connect():
+    return sqlite3.connect('banco_estagiarios.db')
+
+def init_db():
+    conn = connect()
+    cursor = conn.cursor()
+    
+    # Tabela de estagiários
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS estagiarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            cpf TEXT NOT NULL UNIQUE,
+            senha TEXT NOT NULL
+        )
+    ''')
+
+    # Tabela de pontos
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS pontos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            estagiario_id INTEGER NOT NULL,
+            data TEXT NOT NULL,
+            hora TEXT NOT NULL,
+            tipo TEXT NOT NULL,
+            FOREIGN KEY(estagiario_id) REFERENCES estagiarios(id)
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+def add_estagiario(nome, cpf, senha_hashed):
+    try:
+        conn = connect()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO estagiarios (nome, cpf, senha) VALUES (?, ?, ?)', (nome, cpf, senha_hashed))
+        conn.commit()
+        return cursor.lastrowid
+    except sqlite3.IntegrityError:
+        return None
+    finally:
+        conn.close()
+
+def get_estagiario_by_cpf(cpf):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM estagiarios WHERE cpf = ?', (cpf,))
+    result = cursor.fetchone()
+    conn.close()
+    return result
+
+def record_ponto(estagiario_id, tipo):
+    data = datetime.now().strftime('%Y-%m-%d')
+    hora = datetime.now().strftime('%H:%M:%S')
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO pontos (estagiario_id, data, hora, tipo) VALUES (?, ?, ?, ?)',
+                   (estagiario_id, data, hora, tipo))
+    conn.commit()
+    conn.close()
+
+def get_pontos_by_estagiario(estagiario_id):
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute('SELECT data, hora, tipo FROM pontos WHERE estagiario_id = ? ORDER BY data DESC, hora DESC',
+                   (estagiario_id,))
+    result = cursor.fetchall()
+    conn.close()
+    return result
+
+def get_all_pontos():
+    conn = connect()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT e.nome, e.cpf, p.data, p.hora, p.tipo
+        FROM pontos p
+        JOIN estagiarios e ON p.estagiario_id = e.id
+        ORDER BY p.data DESC, p.hora DESC
+    ''')
+    result = cursor.fetchall()
+    conn.close()
+    return result

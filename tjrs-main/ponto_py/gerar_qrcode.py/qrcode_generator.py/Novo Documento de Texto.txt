@@ -1,0 +1,31 @@
+# qrcode_generator.py
+import qrcode
+import database # Importa as funções do seu banco de dados
+
+def generate_qr_for_all_estagiarios():
+    conn = database.get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, nome, cpf FROM estagiarios")
+    estagiarios = cursor.fetchall()
+    conn.close()
+
+    for estagiario in estagiarios:
+        estagiario_id = estagiario[0]
+        estagiario_nome = estagiario[1]
+        estagiario_cpf = estagiario[2]
+
+        # Você pode decidir quais dados incluir no QR code
+        qr_data = f"ID:{estagiario_id}|NOME:{estagiario_nome}|CPF:{estagiario_cpf}"
+        
+        img = qrcode.make(qr_data)
+        filename = f"qrcodes/estagiario_{estagiario_id}_{estagiario_cpf}.png"
+        img.save(filename)
+        print(f"QR Code para {estagiario_nome} salvo como {filename}")
+
+if __name__ == '__main__':
+    import os
+    if not os.path.exists('qrcodes'):
+        os.makedirs('qrcodes')
+    
+    database.init_db() # Garante que o banco de dados está inicializado
+    generate_qr_for_all_estagiarios()

@@ -1,0 +1,179 @@
+import database # Importa as funções do seu arquivo database.py
+
+# app.py
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
+import database # Importa as funções do seu arquivo database.py
+import qrcode
+import base64
+from io import BytesIO
+
+app = Flask(__name__)
+# MUDE esta chave secreta para uma string longa, aleatória e complexa em um ambiente de produção!
+app.secret_key = 'uma_chave_secreta_muito_segura_e_complexa_aqui_1234567890' 
+
+# Esta função é executada antes de cada requisição para garantir que o DB esteja inicializado
+@app.before_request
+def initialize_database():
+    database.init_db()
+
+# Rota da página inicial (redireciona para login ou página de ponto)
+@app.route('/')
+def index():
+    if 'estagiario_id' in session:
+        return redirect(url_for('ponto_page'))
+    return render_template('login.html')
+
+# Rotas de Login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        cpf = request.form['cpf']
+        senha = request.form['senha']
+
+        estagiario = database.get_estagiario_by_cpf(cpf)
+
+        # Verifica se o estagiário existe e se a senha está correta
+        if estagiario and check_password_hash(estagiario[3], senha): # estagiario[3] é a senha hashed no DB
+            session['estagiario_id'] = estagiario[0] # Armazena o ID na sessão
+            session['estagiario_nome'] = estagiario[1] # Armazena o nome na sessão
+            return redirect(url_for('ponto_page'))
+        else:
+            return render_template('login.html', message='CPF ou senha incorretos.')
+    return render_template('login.html')
+
+# Rotas de Registro de Estagiário
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        cpf = request.form['cpf']
+        senha = request.form['senha']
+
+        # Hashing da senha para segurança antes de salvar no DB
+        senha_hashed = generate_password_hash(senha)
+
+        estagiario_id = database.add_estagiario(nome, cpf, senha_hashed)
+        if estagiario_id:
+            return render_template('login.html', message='Cadastro realizado com sucesso! Faça o login.')
+        else:
+            return render_template('register.html', message='CPF já cadastrado.')
+    return render_template('register.html')
+
+# Rota da Página de Ponto (após o login)
+@app.route('/ponto')
+def ponto_page():
+    # Redireciona para o login se não houver estagiário na sessão
+    if 'estagiario_id' not in session:
+        return redirect(url_for('login'))
+    
+    estagiario_id = session['estagiario_id']
+    estagiario_nome = session['estagiario_nome']
+    
+    # Gerar QR Code para o ID do estagiário logado
+    # Este QR Code pode ser usado para um sistema de leitura externo
+    qr_data = f"ESTAGIARIO_ID:{estagiario_id}"
+    img = qrcode.make(qr_data)
+    
+    # Converte a imagem do QR Code para base64 para ser exibida no HTML
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    # Busca o histórico de pontos do estagiário
+    pontos = database.get_pontos_by_estagiario(estagiario_id)
+    return render_template('ponto.html', 
+                           estagiario_nome=estagiario_nome, 
+                           pontos=pontos,
+                           qr_code_base64=qr_code_base64)
+
+# Rota para Registrar Ponto (usada pelos botões na página de ponto)
+@app.route('/registrar_ponto', methods=['POST'])
+def registrar_ponto():
+    if 'estagiario_id' not in session:
+        # Se não estiver logado, retorna um erro JSON ou redireciona
+        return jsonify({"message": "Não autenticado"}), 401
+    
+    estagiario_id = session['estagiario_id']
+    tipo = request.form['tipo'] # Recebe 'entrada' ou 'saida' do formulário
+
+    if tipo not in ['entrada', 'saida']:
+        return jsonify({"message": "Tipo de ponto inválido"}), 400
+
+    database.record_ponto(estagiario_id, tipo)
+    # Redireciona de volta para a página de ponto para ver o histórico atualizado
+    return redirect(url_for('ponto_page'))
+
+# Rota de Logout
+@app.route('/logout')
+def logout():
+    # Remove as informações do estagiário da sessão
+    session.pop('estagiario_id', None)
+    session.pop('estagiario_nome', None)
+    return redirect(url_for('login'))
+
+# --- API Endpoints (opcionais, para integração com outros sistemas ou testes) ---
+# Você pode usar estes endpoints com ferramentas como Postman ou o Jupyter Notebook.
+
+@app.route('/api/register', methods=['POST'])
+def api_register():
+    data = request.get_json()
+    nome = data.get('nome')
+    cpf = data.get('cpf')
+    senha = data.get('senha')
+
+    if not all([nome, cpf, senha]):
+        return jsonify({"message": "Dados incompletos"}), 400
+    
+    senha_hashed = generate_password_hash(senha)
+    estagiario_id = database.add_estagiario(nome, cpf, senha_hashed)
+
+    if estagiario_id:
+        return jsonify({"message": "Estagiário cadastrado com sucesso!", "id": estagiario_id}), 201
+    else:
+        return jsonify({"message": "CPF já cadastrado"}), 409
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    cpf = data.get('cpf')
+    senha = data.get('senha')
+
+    estagiario = database.get_estagiario_by_cpf(cpf)
+    if estagiario and check_password_hash(estagiario[3], senha):
+        return jsonify({"message": "Login bem-sucedido!", "id": estagiario[0], "nome": estagiario[1]}), 200
+    else:
+        return jsonify({"message": "CPF ou senha inválidos"}), 401
+
+@app.route('/api/registrar_ponto', methods=['POST'])
+def api_registrar_ponto():
+    data = request.get_json()
+    estagiario_id = data.get('estagiario_id')
+    tipo = data.get('tipo')
+
+    if not all([estagiario_id, tipo]) or tipo not in ['entrada', 'saida']:
+        return jsonify({"message": "Dados inválidos"}), 400
+
+    database.record_ponto(estagiario_id, tipo)
+    return jsonify({"message": f"Ponto de {tipo} registrado com sucesso!"}), 200
+
+@app.route('/api/meus_pontos/<int:estagiario_id>', methods=['GET'])
+def api_meus_pontos(estagiario_id):
+    pontos = database.get_pontos_by_estagiario(estagiario_id)
+    # Formata os pontos para retornar como JSON
+    pontos_formatados = [{"data": p[0], "hora": p[1], "tipo": p[2]} for p in pontos]
+    return jsonify(pontos_formatados), 200
+
+@app.route('/api/todos_pontos', methods=['GET'])
+def api_todos_pontos():
+    pontos = database.get_all_pontos()
+    pontos_formatados = [{"nome": p[0], "cpf": p[1], "data": p[2], "hora": p[3], "tipo": p[4]} for p in pontos]
+    return jsonify(pontos_formatados), 200
+
+
+if __name__ == '__main__':
+    # Inicializa o banco de dados e as tabelas ao iniciar o script
+    database.init_db()
+    # Roda o servidor Flask. debug=True é ótimo para desenvolvimento (reinicia ao salvar),
+    # mas deve ser False em produção.
+    app.run(debug=True)

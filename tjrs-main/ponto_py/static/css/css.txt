@@ -1,0 +1,179 @@
+/* static/css/main.css */
+
+/* --- Variáveis de Cores do TJRS (para facilitar a manutenção) --- */
+:root {
+    --tjrs-blue-dark: #03264d; /* Azul marinho principal */
+    --tjrs-blue-medium: #01519a; /* Um azul um pouco mais claro para detalhes */
+    --tjrs-blue-light: #e0f2f7; /* Azul muito claro, quase branco, para fundos */
+    --tjrs-gray-dark: #333; /* Texto principal */
+    --tjrs-gray-medium: #6c757d; /* Texto secundário */
+    --tjrs-gray-light: #f8f9fa; /* Fundo padrão */
+    --tjrs-white: #fff;
+}
+
+/* --- Estilos Globais e Reset Básico --- */
+body {
+    font-family: Arial, Helvetica, sans-serif; /* Fonte similar à do TJRS */
+    color: var(--tjrs-gray-dark);
+    background-color: var(--tjrs-gray-light); /* Fundo claro padrão */
+    line-height: 1.6;
+}
+
+a {
+    color: var(--tjrs-blue-medium); /* Links em azul */
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--tjrs-blue-dark); /* Azul mais escuro no hover */
+    text-decoration: underline;
+}
+
+/* --- Barra de Navegação (Navbar) --- */
+/* Sobrescreve o Bootstrap para o azul institucional */
+.navbar {
+    background-color: var(--tjrs-blue-dark) !important;
+    border-bottom: 3px solid var(--tjrs-blue-medium); /* Linha azul de destaque */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15); /* Sombra suave para profundidade */
+}
+
+.navbar-brand,
+.navbar-nav .nav-link {
+    color: var(--tjrs-white) !important;
+    font-weight: 600; /* Um pouco mais encorpado */
+    padding-left: 15px; /* Espaçamento entre itens */
+    padding-right: 15px;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link:focus {
+    color: var(--tjrs-blue-light) !important; /* Cor clara no hover/focus */
+    background-color: rgba(255, 255, 255, 0.1); /* Fundo sutil */
+    border-radius: 5px;
+}
+
+/* --- Conteúdo Principal --- */
+.container {
+    margin-top: 30px; /* Mais espaço do topo */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--tjrs-blue-dark); /* Títulos em azul marinho */
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* --- Estilos para Cards --- */
+.card {
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Borda sutil */
+    border-radius: 8px; /* Cantos arredondados */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Sombra mais visível */
+    margin-bottom: 25px; /* Espaçamento entre cards */
+}
+
+.card-header.bg-primary {
+    background-color: var(--tjrs-blue-medium) !important; /* Azul médio no cabeçalho do card */
+    color: var(--tjrs-white) !important;
+    font-weight: 600;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 15px 20px;
+}
+
+/* --- Botões de Ação --- */
+.btn-primary {
+    background-color: var(--tjrs-blue-dark); /* Botão primário no azul marinho */
+    border-color: var(--tjrs-blue-dark);
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+.btn-primary:hover {
+    background-color: var(--tjrs-blue-medium); /* Azul médio no hover */
+    border-color: var(--tjrs-blue-medium);
+}
+
+.btn-success {
+    background-color: #28a745; /* Verde padrão Bootstrap para sucesso */
+    border-color: #28a745;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+.btn-warning {
+    background-color: #ffc107; /* Amarelo padrão Bootstrap para aviso */
+    border-color: #ffc107;
+    color: var(--tjrs-gray-dark); /* Texto mais escuro para contraste */
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+/* --- Estilos de Formulário --- */
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    padding: 10px 15px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--tjrs-gray-dark);
+    margin-bottom: 5px;
+}
+
+/* --- Tabela de Histórico de Pontos --- */
+.table {
+    margin-top: 25px;
+    border-radius: 8px;
+    overflow: hidden; /* Garante que bordas arredondadas funcionem com overflow */
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.table thead {
+    background-color: var(--tjrs-blue-light); /* Cabeçalho da tabela em azul claro */
+    color: var(--tjrs-blue-dark);
+}
+
+.table th, .table td {
+    padding: 12px 15px;
+    vertical-align: middle;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.03); /* Linhas ímpares com leve fundo */
+}
+
+/* --- Estilo para o QR Code --- */
+.qr-code-container {
+    text-align: center;
+    padding: 20px;
+    background-color: var(--tjrs-white);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.qr-code-container img {
+    max-width: 180px; /* Um pouco menor para encaixar bem */
+    height: auto;
+    display: block;
+    margin: 15px auto;
+    border: 5px solid var(--tjrs-blue-light); /* Borda clara em volta do QR */
+    border-radius: 5px;
+}
+
+.qr-code-container p {
+    color: var(--tjrs-gray-medium);
+    font-size: 0.9em;
+}
+
+/* --- Mensagens de Alerta --- */
+.alert {
+    border-radius: 5px;
+    font-size: 0.95em;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+}

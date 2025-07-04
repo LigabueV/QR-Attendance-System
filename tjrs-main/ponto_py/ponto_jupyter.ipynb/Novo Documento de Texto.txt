@@ -1,0 +1,146 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Sistema de Ponto (Jupyter)\n",
+    "Exemplo de uso programável do sistema de ponto. Use as células para registrar presença, consultar seus registros, etc."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "# Instale as dependências se necessário (descomente)\n",
+    "# !pip install requests"
+   ],
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "import requests\n",
+    "\n",
+    "BASE_URL = 'http://localhost:5000'"
+   ],
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Cadastro de Estagiário"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "resp = requests.post(f'{BASE_URL}/register', json={\n",
+    "    'nome': 'Maria da Silva',\n",
+    "    'cpf': '12345678900',\n",
+    "    'senha': 'senha123'\n",
+    "})\n",
+    "print(resp.json())"
+   ],
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Login (salve o ID para uso nas próximas células)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "resp = requests.post(f'{BASE_URL}/login', json={\n",
+    "    'nome': 'Maria da Silva',\n",
+    "    'cpf': '12345678900',\n",
+    "    'senha': 'senha123'\n",
+    "})\n",
+    "dados = resp.json()\n",
+    "print(dados)\n",
+    "estagiario_id = dados.get('id')"
+   ],
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Registrar ponto (entrada ou saída)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "resp = requests.post(f'{BASE_URL}/registrar_ponto', json={\n",
+    "    'estagiario_id': estagiario_id,\n",
+    "    'tipo': 'entrada'  # ou 'saida'\n",
+    "})\n",
+    "print(resp.json())"
+   ],
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Listar meus pontos"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "resp = requests.get(f'{BASE_URL}/meus_pontos/{estagiario_id}')\n",
+    "for ponto in resp.json():\n",
+    "    print(ponto)"
+   ],
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## (Opcional) Listar todos os pontos (admin)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "resp = requests.get(f'{BASE_URL}/todos_pontos')\n",
+    "for ponto in resp.json():\n",
+    "    print(ponto)"
+   ],
+   "execution_count": null,
+   "outputs": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": ""
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

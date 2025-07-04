@@ -1,0 +1,7 @@
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        # lógica de cadastro...
+        return render_template('register.html', message='Cadastro feito!')
+    
+    return render_template('register.html')

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Meu Ponto - Sistema de Ponto TJRS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Bem-vindo(a), {{ estagiario_nome }}!</h2>
+        <p>Use os botões abaixo para registrar sua entrada ou saída.</p>
+
+        <form action="{{ url_for('registrar_ponto') }}" method="POST" class="d-inline">
+            <input type="hidden" name="tipo" value="entrada">
+            <button type="submit" class="btn btn-success btn-lg me-2">Registrar Entrada</button>
+        </form>
+        <form action="{{ url_for('registrar_ponto') }}" method="POST" class="d-inline">
+            <input type="hidden" name="tipo" value="saida">
+            <button type="submit" class="btn btn-warning btn-lg">Registrar Saída</button>
+        </form>
+
+        <h3 class="mt-4">Seu Histórico de Pontos</h3>
+        {% if pontos %}
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ponto in pontos %}
+                <tr>
+                    <td>{{ ponto[0] }}</td>
+                    <td>{{ ponto[1] }}</td>
+                    <td>{{ ponto[2] | capitalize }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Nenhum ponto registrado ainda.</p>
+        {% endif %}
+    </div>
+    <div class="col-md-4 text-center">
+        <h3>Seu QR Code de Identificação</h3>
+        <p>Você pode usar este QR Code para um sistema de leitura, se disponível.</p>
+        <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code do Estagiário" class="img-fluid" style="max-width: 200px;">
+    </div>
+</div>
+{% endblock %}
+
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+<img src="{{ url_for('static', filename='images/tjrs_logo.png') }}" alt="Logo TJRS">

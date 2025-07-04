@@ -1,0 +1,20 @@
+import qrcode
+
+# Dados do estagiário (pode ser um dicionário, string, etc.)
+estagiario = {
+    "id": 12,
+    "nome": "Maria da Silva",
+    "cpf": "12345678900"
+}
+
+# Você pode converter para string, ou usar só o id/cpf
+qrcode_data = f"ID:{estagiario['id']}|NOME:{estagiario['nome']}|CPF:{estagiario['cpf']}"
+
+# Gerar o QR Code
+img = qrcode.make(qrcode_data)
+
+# Exibir no Jupyter:
+img.show()
+
+# Ou salvar em arquivo:
+img.save("estagiario_12_qrcode.png")
